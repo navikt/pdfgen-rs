@@ -26,6 +26,7 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
+          build-mode: manual
 
       - name: Setup rust
         uses: actions-rs/toolchain@v1
