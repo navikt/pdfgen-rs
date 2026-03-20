@@ -1,0 +1,29 @@
+name: Publish main
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+  NEW_VERSION: ${{ github.event.release.tag_name }}
+
+jobs:
+  build:
+    name: Build and publish docker image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Build Docker image to ghcr.io
+        run: |
+          docker build --tag ${{ env.IMAGE }}:${{ env.NEW_VERSION }} .
+      - name: Push docker image to GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          docker login ghcr.io -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
+          docker push ${{ env.IMAGE }}:${{ env.NEW_VERSION }}
