@@ -1,5 +1,5 @@
 FROM clux/muslrust:stable as builder
-COPY static /build/static
+
 WORKDIR /build
 COPY . .
 ENV RUSTFLAGS='-C target-feature=+crt-static'
