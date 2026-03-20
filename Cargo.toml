@@ -9,7 +9,7 @@ path = "src/main.rs"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
-axum = "0.7"
+axum = "0.8"
 serde_json = "1"
 handlebars = "6"
 chrono = { version = "0.4", features = ["serde"] }
