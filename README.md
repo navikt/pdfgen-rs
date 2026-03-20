@@ -31,9 +31,6 @@ COPY templates /app/templates # handlebars templates
 COPY fonts /app/fonts         # fonts to be embedded
 COPY resources /app/resources # additional resources
 ```
-If you need to specify your own worker group size, connection group size or call group size you may add these as environment variables in the 
-Dockerfile. The variable names are WORKER_GROUP_SIZE, CONNECTION_GROUP_SIZE and CALL_GROUP_SIZE.
-
 
 Check [GitHub releases](https://github.com/navikt/pdfgen-rs/releases) to find the latest `release` version
 
@@ -86,19 +83,6 @@ To enable HTML document support, use the environment variable `ENABLE_HTML_ENDPO
 HTML endpoints on `/api/v1/genhtml/<application>/<template>`. 
 
 By default, pdfgen-rs will load all assets (`templates`, `resources`, `data`) to memory on startup. Any change on files inside these folders will not be loaded before a restart of the application.
-
-### Environment variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SERVER_PORT` | `8080` | HTTP server port |
-| `DISABLE_PDF_GET` | `false` (binary), `true` (Docker image) | Disable GET endpoint for PDF generation |
-| `ENABLE_HTML_ENDPOINT` | `false` | Enable HTML generation endpoints |
-| `DEV_MODE` | `false` | Reload templates on each request (development only) |
-| `TEMPLATES_DIR` | `templates` | Directory containing Handlebars templates |
-| `RESOURCES_DIR` | `resources` | Directory containing resource files (images) |
-| `FONTS_DIR` | `fonts` | Directory containing fonts (used by Typst PDF renderer) |
-| `DATA_DIR` | `data` | Directory containing test data JSON files |
 
 ### Release
 We use default GitHub release. 
