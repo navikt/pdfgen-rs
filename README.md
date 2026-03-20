@@ -25,7 +25,7 @@ In your own repository, create a Dockerfile with the following contents
 
 ```dockerfile
 # Dockerfile
-FROM ghcr.io/navikt/pdfgen:<release>
+FROM ghcr.io/navikt/pdfgen-rs:<release>
 
 COPY templates /app/templates # handlebars templates
 COPY fonts /app/fonts         # fonts to be embedded
@@ -36,7 +36,7 @@ Dockerfile. The variable names are WORKER_GROUP_SIZE, CONNECTION_GROUP_SIZE and 
 
 
 Check GitHub releases to find the latest `release` version 
-Check [GitHub releases](https://github.com/navikt/pdfgen/releases) to find the latest `release` version
+Check [GitHub releases](https://github.com/navikt/pdfgen-rs/releases) to find the latest `release` version
 
 Set up the basic folder structure
 ```bash
