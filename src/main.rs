@@ -90,9 +90,9 @@ async fn main() {
 
 fn build_router(state: AppState, cfg: &config::Config) -> Router {
     let pdf_template_route = if !cfg.disable_pdf_get {
-        axum::routing::get(routes::pdf::get_pdf).post(routes::pdf::post_pdf)
+        get(routes::pdf::get_pdf).post(routes::pdf::post_pdf)
     } else {
-        axum::routing::post(routes::pdf::post_pdf)
+        post(routes::pdf::post_pdf)
     };
 
     let pdf_router = Router::new()

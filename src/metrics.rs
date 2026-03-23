@@ -42,7 +42,7 @@ pub fn gather_metrics(names: &[String]) -> anyhow::Result<String> {
         registry
             .gather()
             .into_iter()
-            .filter(|mf| names.contains(&mf.get_name().to_string()))
+            .filter(|mf| names.contains(&mf.name().to_string()))
             .collect()
     };
 

@@ -3,7 +3,6 @@ use std::env;
 #[derive(Clone, Debug)]
 pub struct Config {
     pub port: u16,
-    pub dev_mode: bool,
     pub disable_pdf_get: bool,
     pub enable_html_endpoint: bool,
     pub templates_dir: String,
@@ -19,7 +18,6 @@ impl Default for Config {
                 .ok()
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(8080),
-            dev_mode: env::var("DEV_MODE").map(|v| v == "true").unwrap_or(false),
             disable_pdf_get: env::var("DISABLE_PDF_GET")
                 .map(|v| v == "true")
                 .unwrap_or(false),

@@ -5,11 +5,7 @@ use typst::foundations::Bytes;
 
 use crate::typst_world;
 
-/// Convert HTML string to PDF bytes using Typst.
-///
-/// The HTML content is passed to a minimal Typst document as a raw virtual
-/// file and rendered. For best results, templates should use native Typst
-/// (`.typ`) format and `typst_to_pdf` directly.
+
 pub fn html_to_pdf(html: &str, fonts_dir: &str, root: &Path) -> Result<Vec<u8>> {
     // Build a Typst document that displays the HTML content as a raw block
     // This allows PDF generation without an external browser.
@@ -26,9 +22,7 @@ pub fn html_to_pdf(html: &str, fonts_dir: &str, root: &Path) -> Result<Vec<u8>> 
     typst_world::compile_to_pdf(fonts_dir, root, "/main.typ", typst_source, vfiles)
 }
 
-/// Render a Typst template to PDF bytes with JSON data injected as data.json.
-///
-/// The template can access the data via `#let data = json("data.json")`.
+
 #[allow(dead_code)]
 pub fn typst_to_pdf(
     template_source: &str,
@@ -49,7 +43,6 @@ pub fn typst_to_pdf(
     )
 }
 
-/// Wrap an image (JPEG/PNG) in a Typst document and convert to PDF.
 pub fn image_to_pdf(
     image_bytes: &[u8],
     content_type: &str,
