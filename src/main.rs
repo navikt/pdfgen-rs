@@ -100,9 +100,7 @@ fn build_router(state: AppState) -> Router {
 
     Router::new()
         .nest("/api/v1/genpdf", pdf_router)
-        .route("/internal/is_alive", get(routes::nais::is_alive))
-        .route("/internal/is_ready", get(routes::nais::is_ready))
-        .route("/internal/prometheus", get(routes::nais::prometheus_metrics))
+        .merge(routes::nais::nais_router())
         .layer(middleware::from_fn(http_metrics_middleware))
         .with_state(state)
 }
