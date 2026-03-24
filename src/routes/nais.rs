@@ -9,12 +9,11 @@ use std::collections::HashMap;
 
 use crate::{metrics, AppState};
 
-pub fn nais_router(state: AppState) -> Router {
+pub fn nais_router() -> Router<AppState> {
     Router::new()
         .route("/internal/is_alive", get(is_alive))
         .route("/internal/is_ready", get(is_ready))
         .route("/internal/prometheus", get(prometheus_metrics))
-        .with_state(state)
 }
 
 pub async fn is_alive(State(state): State<AppState>) -> Response {
@@ -93,35 +92,35 @@ mod tests {
 
     #[tokio::test]
     async fn is_alive_returns_200_when_alive() {
-        let server = TestServer::new(nais_router(test_state(true, false))).unwrap();
+        let server = TestServer::new(nais_router().with_state(test_state(true, false))).unwrap();
         let response = server.get("/internal/is_alive").await;
         assert_eq!(response.status_code(), StatusCode::OK);
     }
 
     #[tokio::test]
     async fn is_alive_returns_500_when_not_alive() {
-        let server = TestServer::new(nais_router(test_state(false, false))).unwrap();
+        let server = TestServer::new(nais_router().with_state(test_state(false, false))).unwrap();
         let response = server.get("/internal/is_alive").await;
         assert_eq!(response.status_code(), StatusCode::INTERNAL_SERVER_ERROR);
     }
 
     #[tokio::test]
     async fn is_ready_returns_200_when_ready() {
-        let server = TestServer::new(nais_router(test_state(false, true))).unwrap();
+        let server = TestServer::new(nais_router().with_state(test_state(false, true))).unwrap();
         let response = server.get("/internal/is_ready").await;
         assert_eq!(response.status_code(), StatusCode::OK);
     }
 
     #[tokio::test]
     async fn is_ready_returns_500_when_not_ready() {
-        let server = TestServer::new(nais_router(test_state(false, false))).unwrap();
+        let server = TestServer::new(nais_router().with_state(test_state(false, false))).unwrap();
         let response = server.get("/internal/is_ready").await;
         assert_eq!(response.status_code(), StatusCode::INTERNAL_SERVER_ERROR);
     }
 
     #[tokio::test]
     async fn prometheus_metrics_returns_200() {
-        let server = TestServer::new(nais_router(test_state(true, true))).unwrap();
+        let server = TestServer::new(nais_router().with_state(test_state(true, true))).unwrap();
         let response = server.get("/internal/prometheus").await;
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
