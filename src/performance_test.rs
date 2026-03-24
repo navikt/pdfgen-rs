@@ -62,15 +62,20 @@ mod tests {
                 let url = format!("{base_url}/api/v1/genpdf/{app_name}/{template_name}");
                 let data = json_data.clone();
                 join_set.spawn(async move {
+                    let pdf_start = std::time::Instant::now();
                     let response = client.post(&url).json(&data).send().await.unwrap();
                     assert!(response.status().is_success());
                     let bytes = response.bytes().await.unwrap();
                     assert!(!bytes.is_empty());
+                    pdf_start.elapsed().as_millis()
                 });
             }
 
             while let Some(result) = join_set.join_next().await {
-                result.unwrap();
+                let elapsed = result.unwrap();
+                println!(
+                    "Multi-thread {template_name} for {app_name}: pdf created in {elapsed}ms"
+                );
             }
 
             println!(
@@ -107,10 +112,15 @@ mod tests {
             let start = std::time::Instant::now();
 
             for _ in 0..passes {
+                let pdf_start = std::time::Instant::now();
                 let url = format!("/api/v1/genpdf/{app_name}/{template_name}");
                 let response = server.post(&url).json(&json_data).await;
                 response.assert_status_success();
                 assert!(!response.as_bytes().is_empty());
+                println!(
+                    "Single-thread {template_name} for {app_name}: pdf created in {}ms",
+                    pdf_start.elapsed().as_millis()
+                );
             }
 
             println!(
