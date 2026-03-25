@@ -45,7 +45,7 @@ mkdir {templates,data}/your_teamname # your_teamname can be anything, but it'll 
 * `templates/your_teamname/` should then be populated with your `.typ` Typst templates. the names of these templates will also decide parts of the API paths. Templates receive JSON data via `#let data = json("/data.json")`.
 * `data/your_teamname/` should be populated with json files with names corresponding to a target `.typ` template, this can be used to test your PDFs during development of templates.
 
-### Appicationss that uses pdfgenrs
+### Appications that uses pdfgenrs
 - https://github.com/navikt/pale-2-pdfgenrs
 
 ## Developing pdfgenrs
