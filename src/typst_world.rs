@@ -9,7 +9,6 @@ use typst_library::diag::{FileError, FileResult};
 use typst_library::text::{Font, FontBook};
 use typst_library::World;
 use typst_syntax::{FileId, Source, VirtualPath};
-use ::log::{info};
 
 static EMBEDDED_FONTS: &[&[u8]] = &[
     include_bytes!("../fonts/SourceSansPro-Regular.ttf"),
@@ -172,7 +171,6 @@ pub fn compile_to_pdf(
 
     // Evict comemo's global memoization cache to prevent unbounded memory growth.
     // Entries not accessed in the last 15 eviction cycles are removed.
-    info!("Evicting comemo cache");
     comemo::evict(15);
 
     let document = result
