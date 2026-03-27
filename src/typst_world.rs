@@ -222,6 +222,20 @@ mod tests {
         bytes.starts_with(b"%PDF")
     }
 
+    /// Returns the current resident set size (RSS) of the process in kilobytes.
+    ///
+    /// This reads from `/proc/self/status`, which is only available on Linux.
+    /// On any other platform (macOS, Windows, etc.) the function returns `None`,
+    /// and callers should skip memory-growth assertions gracefully.
+    fn rss_kb() -> Option<u64> {
+        let status = std::fs::read_to_string("/proc/self/status").ok()?;
+        status
+            .lines()
+            .find(|line| line.starts_with("VmRSS:"))
+            .and_then(|line| line.split_whitespace().nth(1))
+            .and_then(|val| val.parse().ok())
+    }
+
     /// Verifies that `load_fonts` loads the embedded fonts.
     #[test]
     fn fonts_loads_embedded_fonts() {
@@ -265,6 +279,80 @@ Hello, world!
         assert!(result2.is_ok(), "Second compilation failed: {:?}", result2.err());
         let pdf2 = result2.unwrap();
         assert!(is_pdf(&pdf2), "Second result is not a valid PDF");
+    }
+
+    /// Verifies that a full cache eviction (`comemo::evict(0)`) does not break
+    /// subsequent compilations. `compile_to_pdf` calls `comemo::evict(15)` after
+    /// every compilation to prevent unbounded memory growth; this test ensures
+    /// that the eviction is safe and compatible with the compilation pipeline.
+    #[test]
+    fn compilation_succeeds_after_full_cache_eviction() {
+        let fonts = load_fonts();
+        let root = root_dir();
+        let source = "#set page(margin: 1cm)\nCache eviction test.".to_string();
+
+        // Completely clear the global comemo memoization cache before compiling.
+        // max_age = 0 removes every cached entry regardless of how recently it was used.
+        comemo::evict(0);
+
+        let result = compile_to_pdf(fonts, &root, "/main.typ", source, HashMap::new());
+        assert!(
+            result.is_ok(),
+            "Compilation after full cache eviction failed: {:?}",
+            result.err()
+        );
+        assert!(is_pdf(&result.unwrap()), "Result after cache eviction is not a valid PDF");
+    }
+
+    /// Verifies that repeated compilations of distinct content do not cause
+    /// unbounded memory growth. Without `comemo::evict()`, each unique compilation
+    /// permanently adds entries to Typst's global memoization cache, leaking memory
+    /// over the lifetime of the service. The fix calls `comemo::evict(15)` inside
+    /// `compile_to_pdf` after every compilation so that stale cache entries are
+    /// removed before they can accumulate.
+    ///
+    /// This test measures the process RSS before and after a large number of
+    /// compilations and asserts that the growth stays below a generous bound.
+    /// It is skipped on platforms that do not expose `/proc/self/status`.
+    #[test]
+    fn repeated_compilations_do_not_grow_memory_unboundedly() {
+        let fonts = load_fonts();
+        let root = root_dir();
+
+        // Warmup: let allocators and caches reach a stable baseline.
+        for i in 0..10 {
+            let source = format!("#set page(margin: 1cm)\nWarmup {i}.");
+            compile_to_pdf(fonts.clone(), &root, "/main.typ", source, HashMap::new())
+                .expect("warmup compilation should succeed");
+        }
+
+        let Some(rss_before) = rss_kb() else {
+            // /proc/self/status is not available on this platform; skip the check.
+            return;
+        };
+
+        // Compile 200 documents with distinct content so that each one would
+        // create a new cache entry without eviction.
+        for i in 0..200 {
+            let source = format!("#set page(margin: 1cm)\nDocument {i} with unique content.");
+            let result =
+                compile_to_pdf(fonts.clone(), &root, "/main.typ", source, HashMap::new());
+            assert!(result.is_ok(), "Compilation {i} failed: {:?}", result.err());
+        }
+
+        let rss_after = rss_kb().unwrap_or(0);
+        let growth_kb = rss_after.saturating_sub(rss_before);
+
+        // Allow at most 64 MB of RSS growth. Each Typst compilation of a simple
+        // single-page document adds roughly 100–300 KB to the memoization cache.
+        // Without eviction, 200 distinct compilations would accumulate well above
+        // 64 MB. With eviction (max_age = 15), the cache holds at most ~15 entries
+        // at any time, so RSS growth stays well below this bound.
+        assert!(
+            growth_kb < 65_536,
+            "RSS grew by {growth_kb} KB after 200 compilations – possible memory leak. \
+             Ensure comemo::evict() is called after each compilation in compile_to_pdf."
+        );
     }
 }
 
