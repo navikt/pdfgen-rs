@@ -35,7 +35,7 @@ pub async fn get_pdf(
             let fonts = (*state.fonts).clone();
             let root = PathBuf::from(&state.config.templates_dir);
             match tokio::task::spawn_blocking(move || {
-                gen_pdf::typst_to_pdf(&source, &data, fonts, &root)
+                gen_pdf::typst_to_pdf(source, &data, fonts, &root)
             })
             .await
             .unwrap_or_else(|e| Err(anyhow::anyhow!("Task join error: {e}")))
@@ -70,7 +70,7 @@ pub async fn post_pdf(
     let fonts = (*state.fonts).clone();
     let root = PathBuf::from(&state.config.templates_dir);
     match tokio::task::spawn_blocking(move || {
-        gen_pdf::typst_to_pdf(&template_source, &json_data, fonts, &root)
+        gen_pdf::typst_to_pdf(template_source, &json_data, fonts, &root)
     })
     .await
     .unwrap_or_else(|e| Err(anyhow::anyhow!("Task join error: {e}")))

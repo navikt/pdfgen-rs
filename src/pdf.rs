@@ -7,22 +7,16 @@ use crate::typst_world::{self, Fonts};
 
 
 pub fn typst_to_pdf(
-    template_source: &str,
+    template_source: String,
     json_data: &serde_json::Value,
     fonts: Fonts,
     root: &Path,
 ) -> Result<Vec<u8>> {
     let json_bytes = serde_json::to_vec(json_data).context("Failed to serialize JSON data")?;
-    let mut vfiles = HashMap::new();
+    let mut vfiles = HashMap::with_capacity(1);
     vfiles.insert("/data.json".to_string(), Bytes::new(json_bytes));
 
-    typst_world::compile_to_pdf(
-        fonts,
-        root,
-        "/main.typ",
-        template_source.to_string(),
-        vfiles,
-    )
+    typst_world::compile_to_pdf(fonts, root, "/main.typ", template_source, vfiles)
 }
 
 #[cfg(test)]
@@ -46,7 +40,7 @@ mod tests {
 Hello, world!
 "#;
         let data = serde_json::json!({});
-        let result = typst_to_pdf(source, &data, load_fonts(), &root_dir());
+        let result = typst_to_pdf(source.to_string(), &data, load_fonts(), &root_dir());
         assert!(result.is_ok(), "typst_to_pdf failed: {:?}", result.err());
         let bytes = result.unwrap();
         assert!(is_pdf(&bytes));
@@ -59,7 +53,7 @@ Hello, world!
 #data.at("name", default: "")
 "#;
         let data = serde_json::json!({"name": "Test User"});
-        let result = typst_to_pdf(source, &data, load_fonts(), &root_dir());
+        let result = typst_to_pdf(source.to_string(), &data, load_fonts(), &root_dir());
         assert!(result.is_ok(), "typst_to_pdf with JSON data failed: {:?}", result.err());
         let bytes = result.unwrap();
         assert!(is_pdf(&bytes));
@@ -69,7 +63,7 @@ Hello, world!
     fn typst_to_pdf_invalid_source_returns_error() {
         let source = "#this-is-not-valid-typst-syntax(((";
         let data = serde_json::json!({});
-        let result = typst_to_pdf(source, &data, load_fonts(), &root_dir());
+        let result = typst_to_pdf(source.to_string(), &data, load_fonts(), &root_dir());
         assert!(result.is_err(), "Expected an error for invalid Typst source");
     }
 }

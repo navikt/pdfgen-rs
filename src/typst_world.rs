@@ -136,12 +136,10 @@ impl World for PdfgenWorld {
     }
 
     fn today(&self, offset: Option<i64>) -> Option<typst_library::foundations::Datetime> {
-        let now = chrono::Local::now();
         let naive = if let Some(off) = offset {
-            let utc = now.with_timezone(&chrono::Utc);
-            (utc + chrono::Duration::hours(off)).naive_local()
+            (chrono::Utc::now() + chrono::Duration::hours(off)).naive_local()
         } else {
-            now.naive_local()
+            chrono::Local::now().naive_local()
         };
         typst_library::foundations::Datetime::from_ymd(
             naive.year(),
@@ -176,16 +174,21 @@ pub fn compile_to_pdf(
     let document = result
         .output
         .map_err(|errors| {
-            let msgs: Vec<String> = errors
-                .iter()
-                .map(|e| e.message.to_string())
-                .collect();
-            anyhow::anyhow!("Typst compilation failed: {}", msgs.join("; "))
+            let msg = errors.iter().fold(String::new(), |mut s, e| {
+                if !s.is_empty() { s.push_str("; "); }
+                s.push_str(e.message.as_str());
+                s
+            });
+            anyhow::anyhow!("Typst compilation failed: {msg}")
         })?;
 
     if !result.warnings.is_empty() {
-        let warns: Vec<String> = result.warnings.iter().map(|w| w.message.to_string()).collect();
-        log::warn!("Typst warnings: {}", warns.join("; "));
+        let warns = result.warnings.iter().fold(String::new(), |mut s, w| {
+            if !s.is_empty() { s.push_str("; "); }
+            s.push_str(w.message.as_str());
+            s
+        });
+        log::warn!("Typst warnings: {warns}");
     }
 
     let standards = typst_pdf::PdfStandards::new(&[typst_pdf::PdfStandard::A_2a])
@@ -199,8 +202,12 @@ pub fn compile_to_pdf(
     };
     let pdf_bytes = typst_pdf::pdf(&document, &options)
         .map_err(|errors| {
-            let msgs: Vec<String> = errors.iter().map(|e| e.message.to_string()).collect();
-            anyhow::anyhow!("Typst PDF export failed: {}", msgs.join("; "))
+            let msg = errors.iter().fold(String::new(), |mut s, e| {
+                if !s.is_empty() { s.push_str("; "); }
+                s.push_str(e.message.as_str());
+                s
+            });
+            anyhow::anyhow!("Typst PDF export failed: {msg}")
         })?;
 
     Ok(pdf_bytes)
