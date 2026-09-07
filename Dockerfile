@@ -1,4 +1,4 @@
-FROM clux/muslrust:stable@sha256:01ce6650c2b57796fe9a883df50e7d1254ef75209914d7f25c86d31bf1465abf AS builder
+FROM clux/muslrust:stable@sha256:c4058e1060c2f069708b1e8d846bcaf67b9c5082ba05b7768d1f4314449f9062 AS builder
 RUN cargo install cargo-auditable
 WORKDIR /build
 ENV RUSTFLAGS='-C target-feature=+crt-static'
